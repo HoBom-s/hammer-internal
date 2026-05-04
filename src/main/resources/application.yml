@@ -2,7 +2,7 @@ spring:
   application:
     name: hammer-internal
   datasource:
-    url: jdbc:postgresql://localhost:5432/bear
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:bear}
     username: ${DB_USERNAME:hobom}
     password: ${DB_PASSWORD:}
   jpa:
@@ -14,7 +14,7 @@ spring:
     open-in-view: false
 
 server:
-  port: 8090
+  port: ${SERVER_PORT:8090}
 
 springdoc:
   swagger-ui:
