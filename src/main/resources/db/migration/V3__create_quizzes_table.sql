@@ -1,4 +1,4 @@
-CREATE TABLE auction.quizzes (
+CREATE TABLE IF NOT EXISTS auction.quizzes (
     id            BIGSERIAL PRIMARY KEY,
     question      VARCHAR(500) NOT NULL,
     choice1       VARCHAR(200) NOT NULL,

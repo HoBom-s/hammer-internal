@@ -1,4 +1,4 @@
-CREATE TABLE auction.notification_templates (
+CREATE TABLE IF NOT EXISTS auction.notification_templates (
     id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     template_key   VARCHAR(128) NOT NULL UNIQUE,
     title_template VARCHAR(512) NOT NULL,
