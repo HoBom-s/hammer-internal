@@ -5,6 +5,12 @@ import com.hammer.internal.user.application.dto.UserInfo;
 import com.hammer.internal.user.application.port.in.GetUserUseCase;
 import com.hammer.internal.user.application.port.in.ListUsersUseCase;
 import com.hammer.internal.user.domain.UserStatus;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.UUID;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -12,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@Tag(name = "Users", description = "사용자 조회 API")
 @RestController
 @RequestMapping("/internal/users")
 class UserController {
@@ -24,17 +31,27 @@ class UserController {
         this.listUsersUseCase = listUsersUseCase;
     }
 
+    @Operation(summary = "사용자 목록 조회", description = "페이징 및 상태 필터를 적용하여 사용자 목록을 조회합니다.")
+    @ApiResponse(responseCode = "200", description = "조회 성공")
     @GetMapping
     public PagedResult<UserInfo> getUsers(
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "20") int size,
-            @RequestParam(required = false) Short status) {
+            @Parameter(description = "페이지 번호 (1부터 시작)", example = "1") @RequestParam(defaultValue = "1") int page,
+            @Parameter(description = "페이지 크기", example = "20") @RequestParam(defaultValue = "20") int size,
+            @Parameter(description = "상태 필터 (1: Active, 2: Suspended, 3: Deleted)") @RequestParam(required = false)
+                    Short status) {
         UserStatus userStatus = (status != null) ? UserStatus.fromCode(status) : null;
         return listUsersUseCase.listUsers(page, size, userStatus);
     }
 
+    @Operation(summary = "사용자 단건 조회", description = "UUID로 특정 사용자를 조회합니다.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "조회 성공"),
+        @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음", content = @Content)
+    })
     @GetMapping("/{id}")
-    public UserInfo getUser(@PathVariable UUID id) {
+    public UserInfo getUser(
+            @Parameter(description = "사용자 ID", example = "550e8400-e29b-41d4-a716-446655440000") @PathVariable
+                    UUID id) {
         return getUserUseCase.getUser(id);
     }
 }
