@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.hammer.internal.common.application.port.SaveErrorLogPort;
 import com.hammer.internal.common.domain.NotFoundException;
 import com.hammer.internal.notification.application.dto.CreateTemplateCommand;
 import com.hammer.internal.notification.application.dto.TemplateInfo;
@@ -36,6 +37,9 @@ class NotificationTemplateControllerTest {
 
     @Autowired
     MockMvc mockMvc;
+
+    @MockitoBean
+    SaveErrorLogPort saveErrorLogPort;
 
     @MockitoBean
     GetTemplateUseCase getTemplateUseCase;
