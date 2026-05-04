@@ -7,11 +7,16 @@ spring:
     password: ${DB_PASSWORD:}
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: validate
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
     open-in-view: false
+  flyway:
+    schemas:
+      - auction
+      - hammer
+    baseline-on-migrate: true
 
 server:
   port: ${SERVER_PORT:8090}
@@ -21,3 +26,20 @@ springdoc:
     path: /swagger-ui.html
   api-docs:
     path: /v3/api-docs
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+  info:
+    env:
+      enabled: true
+
+info:
+  app:
+    name: hammer-internal
+    version: 0.0.1-SNAPSHOT
