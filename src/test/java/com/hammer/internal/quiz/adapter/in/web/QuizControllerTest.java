@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.hammer.internal.common.application.PagedResult;
+import com.hammer.internal.common.application.port.SaveErrorLogPort;
 import com.hammer.internal.common.domain.NotFoundException;
 import com.hammer.internal.quiz.application.dto.CreateQuizCommand;
 import com.hammer.internal.quiz.application.dto.QuizInfo;
@@ -36,6 +37,9 @@ class QuizControllerTest {
 
     @Autowired
     MockMvc mockMvc;
+
+    @MockitoBean
+    SaveErrorLogPort saveErrorLogPort;
 
     @MockitoBean
     GetQuizUseCase getQuizUseCase;
