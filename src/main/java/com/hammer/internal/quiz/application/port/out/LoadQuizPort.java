@@ -2,6 +2,7 @@ package com.hammer.internal.quiz.application.port.out;
 
 import com.hammer.internal.common.application.PagedResult;
 import com.hammer.internal.quiz.domain.Quiz;
+import java.util.List;
 import java.util.Optional;
 
 public interface LoadQuizPort {
@@ -11,4 +12,6 @@ public interface LoadQuizPort {
     PagedResult<Quiz> findAll(int page, int size);
 
     boolean existsById(Long id);
+
+    List<Quiz> findRandom(int count);
 }

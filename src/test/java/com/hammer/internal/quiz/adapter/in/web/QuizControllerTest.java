@@ -20,6 +20,7 @@ import com.hammer.internal.quiz.application.dto.UpdateQuizCommand;
 import com.hammer.internal.quiz.application.port.in.CreateQuizUseCase;
 import com.hammer.internal.quiz.application.port.in.DeleteQuizUseCase;
 import com.hammer.internal.quiz.application.port.in.GetQuizUseCase;
+import com.hammer.internal.quiz.application.port.in.GetRandomQuizzesUseCase;
 import com.hammer.internal.quiz.application.port.in.ListQuizzesUseCase;
 import com.hammer.internal.quiz.application.port.in.UpdateQuizUseCase;
 import java.time.OffsetDateTime;
@@ -46,6 +47,9 @@ class QuizControllerTest {
 
     @MockitoBean
     ListQuizzesUseCase listQuizzesUseCase;
+
+    @MockitoBean
+    GetRandomQuizzesUseCase getRandomQuizzesUseCase;
 
     @MockitoBean
     CreateQuizUseCase createQuizUseCase;
@@ -98,6 +102,31 @@ class QuizControllerTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.page").value(2))
                     .andExpect(jsonPath("$.size").value(5));
+        }
+    }
+
+    @Nested
+    class GetRandomQuizzes {
+
+        @Test
+        void returns_random_quizzes() throws Exception {
+            given(getRandomQuizzesUseCase.getRandomQuizzes(3))
+                    .willReturn(List.of(sampleQuizInfo(1L), sampleQuizInfo(2L), sampleQuizInfo(3L)));
+
+            mockMvc.perform(get("/internal/quizzes/random").param("count", "3"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$").isArray())
+                    .andExpect(jsonPath("$.length()").value(3))
+                    .andExpect(jsonPath("$[0].id").value(1));
+        }
+
+        @Test
+        void uses_default_count_of_3() throws Exception {
+            given(getRandomQuizzesUseCase.getRandomQuizzes(3)).willReturn(List.of(sampleQuizInfo(1L)));
+
+            mockMvc.perform(get("/internal/quizzes/random"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$").isArray());
         }
     }
 

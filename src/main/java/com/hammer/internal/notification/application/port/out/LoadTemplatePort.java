@@ -14,4 +14,6 @@ public interface LoadTemplatePort {
     boolean existsById(UUID id);
 
     boolean existsByTemplateKey(String templateKey);
+
+    Optional<NotificationTemplate> findByTemplateKey(String templateKey);
 }

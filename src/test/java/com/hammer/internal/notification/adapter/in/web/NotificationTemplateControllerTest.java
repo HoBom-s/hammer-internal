@@ -18,6 +18,7 @@ import com.hammer.internal.notification.application.dto.TemplateInfo;
 import com.hammer.internal.notification.application.dto.UpdateTemplateCommand;
 import com.hammer.internal.notification.application.port.in.CreateTemplateUseCase;
 import com.hammer.internal.notification.application.port.in.DeleteTemplateUseCase;
+import com.hammer.internal.notification.application.port.in.GetTemplateByKeyUseCase;
 import com.hammer.internal.notification.application.port.in.GetTemplateUseCase;
 import com.hammer.internal.notification.application.port.in.ListTemplatesUseCase;
 import com.hammer.internal.notification.application.port.in.UpdateTemplateUseCase;
@@ -43,6 +44,9 @@ class NotificationTemplateControllerTest {
 
     @MockitoBean
     GetTemplateUseCase getTemplateUseCase;
+
+    @MockitoBean
+    GetTemplateByKeyUseCase getTemplateByKeyUseCase;
 
     @MockitoBean
     ListTemplatesUseCase listTemplatesUseCase;
@@ -93,6 +97,29 @@ class NotificationTemplateControllerTest {
             mockMvc.perform(get("/internal/notification-templates"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$").isEmpty());
+        }
+    }
+
+    @Nested
+    class GetTemplateByKey {
+
+        @Test
+        void returns_template_by_key() throws Exception {
+            given(getTemplateByKeyUseCase.getTemplateByKey("welcome_push"))
+                    .willReturn(sampleTemplateInfo(UUID.randomUUID()));
+
+            mockMvc.perform(get("/internal/notification-templates/by-key/welcome_push"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.templateKey").value("welcome_push"));
+        }
+
+        @Test
+        void returns_404_when_key_not_found() throws Exception {
+            given(getTemplateByKeyUseCase.getTemplateByKey("unknown"))
+                    .willThrow(new NotFoundException("NotificationTemplate", "unknown"));
+
+            mockMvc.perform(get("/internal/notification-templates/by-key/unknown"))
+                    .andExpect(status().isNotFound());
         }
     }
 
