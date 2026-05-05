@@ -41,6 +41,11 @@ class NotificationTemplatePersistenceAdapter implements LoadTemplatePort, SaveTe
     }
 
     @Override
+    public Optional<NotificationTemplate> findByTemplateKey(String templateKey) {
+        return jpaRepository.findByTemplateKey(templateKey).map(NotificationTemplateMapper::toDomain);
+    }
+
+    @Override
     public NotificationTemplate save(NotificationTemplate template) {
         NotificationTemplateJpaEntity entity = NotificationTemplateMapper.toJpaEntity(template);
         return NotificationTemplateMapper.toDomain(jpaRepository.save(entity));

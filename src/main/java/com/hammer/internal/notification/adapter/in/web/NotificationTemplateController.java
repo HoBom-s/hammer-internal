@@ -3,6 +3,7 @@ package com.hammer.internal.notification.adapter.in.web;
 import com.hammer.internal.notification.application.dto.TemplateInfo;
 import com.hammer.internal.notification.application.port.in.CreateTemplateUseCase;
 import com.hammer.internal.notification.application.port.in.DeleteTemplateUseCase;
+import com.hammer.internal.notification.application.port.in.GetTemplateByKeyUseCase;
 import com.hammer.internal.notification.application.port.in.GetTemplateUseCase;
 import com.hammer.internal.notification.application.port.in.ListTemplatesUseCase;
 import com.hammer.internal.notification.application.port.in.UpdateTemplateUseCase;
@@ -32,6 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
 class NotificationTemplateController {
 
     private final GetTemplateUseCase getTemplateUseCase;
+    private final GetTemplateByKeyUseCase getTemplateByKeyUseCase;
     private final ListTemplatesUseCase listTemplatesUseCase;
     private final CreateTemplateUseCase createTemplateUseCase;
     private final UpdateTemplateUseCase updateTemplateUseCase;
@@ -39,11 +41,13 @@ class NotificationTemplateController {
 
     NotificationTemplateController(
             GetTemplateUseCase getTemplateUseCase,
+            GetTemplateByKeyUseCase getTemplateByKeyUseCase,
             ListTemplatesUseCase listTemplatesUseCase,
             CreateTemplateUseCase createTemplateUseCase,
             UpdateTemplateUseCase updateTemplateUseCase,
             DeleteTemplateUseCase deleteTemplateUseCase) {
         this.getTemplateUseCase = getTemplateUseCase;
+        this.getTemplateByKeyUseCase = getTemplateByKeyUseCase;
         this.listTemplatesUseCase = listTemplatesUseCase;
         this.createTemplateUseCase = createTemplateUseCase;
         this.updateTemplateUseCase = updateTemplateUseCase;
@@ -55,6 +59,17 @@ class NotificationTemplateController {
     @GetMapping
     public List<TemplateInfo> getAllTemplates() {
         return listTemplatesUseCase.listTemplates();
+    }
+
+    @Operation(summary = "알림 템플릿 키 조회", description = "템플릿 키로 특정 알림 템플릿을 조회합니다.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "조회 성공"),
+        @ApiResponse(responseCode = "404", description = "템플릿을 찾을 수 없음", content = @Content)
+    })
+    @GetMapping("/by-key/{key}")
+    public TemplateInfo getTemplateByKey(
+            @Parameter(description = "템플릿 키", example = "welcome_push") @PathVariable String key) {
+        return getTemplateByKeyUseCase.getTemplateByKey(key);
     }
 
     @Operation(summary = "알림 템플릿 단건 조회", description = "UUID로 특정 알림 템플릿을 조회합니다.")

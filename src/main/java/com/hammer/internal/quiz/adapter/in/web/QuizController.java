@@ -5,6 +5,7 @@ import com.hammer.internal.quiz.application.dto.QuizInfo;
 import com.hammer.internal.quiz.application.port.in.CreateQuizUseCase;
 import com.hammer.internal.quiz.application.port.in.DeleteQuizUseCase;
 import com.hammer.internal.quiz.application.port.in.GetQuizUseCase;
+import com.hammer.internal.quiz.application.port.in.GetRandomQuizzesUseCase;
 import com.hammer.internal.quiz.application.port.in.ListQuizzesUseCase;
 import com.hammer.internal.quiz.application.port.in.UpdateQuizUseCase;
 import io.swagger.v3.oas.annotations.Operation;
@@ -14,6 +15,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,6 +35,7 @@ class QuizController {
 
     private final GetQuizUseCase getQuizUseCase;
     private final ListQuizzesUseCase listQuizzesUseCase;
+    private final GetRandomQuizzesUseCase getRandomQuizzesUseCase;
     private final CreateQuizUseCase createQuizUseCase;
     private final UpdateQuizUseCase updateQuizUseCase;
     private final DeleteQuizUseCase deleteQuizUseCase;
@@ -40,11 +43,13 @@ class QuizController {
     QuizController(
             GetQuizUseCase getQuizUseCase,
             ListQuizzesUseCase listQuizzesUseCase,
+            GetRandomQuizzesUseCase getRandomQuizzesUseCase,
             CreateQuizUseCase createQuizUseCase,
             UpdateQuizUseCase updateQuizUseCase,
             DeleteQuizUseCase deleteQuizUseCase) {
         this.getQuizUseCase = getQuizUseCase;
         this.listQuizzesUseCase = listQuizzesUseCase;
+        this.getRandomQuizzesUseCase = getRandomQuizzesUseCase;
         this.createQuizUseCase = createQuizUseCase;
         this.updateQuizUseCase = updateQuizUseCase;
         this.deleteQuizUseCase = deleteQuizUseCase;
@@ -57,6 +62,14 @@ class QuizController {
             @Parameter(description = "페이지 번호 (1부터 시작)", example = "1") @RequestParam(defaultValue = "1") int page,
             @Parameter(description = "페이지 크기", example = "20") @RequestParam(defaultValue = "20") int size) {
         return listQuizzesUseCase.listQuizzes(page, size);
+    }
+
+    @Operation(summary = "랜덤 퀴즈 조회", description = "지정된 개수만큼 랜덤으로 퀴즈를 조회합니다.")
+    @ApiResponse(responseCode = "200", description = "조회 성공")
+    @GetMapping("/random")
+    public List<QuizInfo> getRandomQuizzes(
+            @Parameter(description = "조회할 퀴즈 수", example = "3") @RequestParam(defaultValue = "3") int count) {
+        return getRandomQuizzesUseCase.getRandomQuizzes(count);
     }
 
     @Operation(summary = "퀴즈 단건 조회", description = "ID로 특정 퀴즈를 조회합니다.")

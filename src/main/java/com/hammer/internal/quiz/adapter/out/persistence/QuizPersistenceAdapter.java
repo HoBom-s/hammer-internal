@@ -5,6 +5,7 @@ import com.hammer.internal.quiz.application.port.out.DeleteQuizPort;
 import com.hammer.internal.quiz.application.port.out.LoadQuizPort;
 import com.hammer.internal.quiz.application.port.out.SaveQuizPort;
 import com.hammer.internal.quiz.domain.Quiz;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -46,6 +47,13 @@ class QuizPersistenceAdapter implements LoadQuizPort, SaveQuizPort, DeleteQuizPo
     public Quiz save(Quiz quiz) {
         QuizJpaEntity entity = QuizMapper.toJpaEntity(quiz);
         return QuizMapper.toDomain(jpaRepository.save(entity));
+    }
+
+    @Override
+    public List<Quiz> findRandom(int count) {
+        return jpaRepository.findRandom(count).stream()
+                .map(QuizMapper::toDomain)
+                .toList();
     }
 
     @Override
