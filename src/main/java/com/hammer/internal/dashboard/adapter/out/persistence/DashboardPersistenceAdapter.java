@@ -64,6 +64,18 @@ class DashboardPersistenceAdapter implements LoadDashboardPort {
     }
 
     @Override
+    public long countErrorLogs() {
+        return em.createQuery("SELECT COUNT(e) FROM ErrorLogJpaEntity e", Long.class)
+                .getSingleResult();
+    }
+
+    @Override
+    public long countNotificationTemplates() {
+        return em.createQuery("SELECT COUNT(t) FROM NotificationTemplateJpaEntity t", Long.class)
+                .getSingleResult();
+    }
+
+    @Override
     public List<DashboardStats.DailyErrorCount> findDailyErrorCounts(OffsetDateTime after) {
         List<Tuple> results = em.createNativeQuery(
                         "SELECT CAST(e.created_at AS DATE) AS log_date, COUNT(*) AS cnt "

@@ -21,7 +21,7 @@ class ListTemplatesService implements ListTemplatesUseCase {
     @Override
     public PagedResult<TemplateInfo> listTemplates(int page, int size, String channel, String keyword) {
         String normalizedChannel = (channel != null && !channel.isBlank()) ? channel.strip() : null;
-        String normalizedKeyword = (keyword != null && !keyword.isBlank()) ? keyword.strip() : null;
+        String normalizedKeyword = (keyword != null && !keyword.isBlank()) ? keyword.strip() : "";
 
         PagedResult<NotificationTemplate> result =
                 loadTemplatePort.search(normalizedChannel, normalizedKeyword, page, size);

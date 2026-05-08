@@ -27,7 +27,7 @@ class ListTemplatesServiceTest {
     @Test
     void returns_paged_templates_without_filters() {
         var t1 = Fixtures.template(UUID.randomUUID());
-        given(loadTemplatePort.search(null, null, 1, 20)).willReturn(new PagedResult<>(List.of(t1), 1, 20, 1, 1));
+        given(loadTemplatePort.search(null, "", 1, 20)).willReturn(new PagedResult<>(List.of(t1), 1, 20, 1, 1));
 
         PagedResult<TemplateInfo> result = sut.listTemplates(1, 20, null, null);
 
@@ -38,7 +38,7 @@ class ListTemplatesServiceTest {
     @Test
     void returns_paged_templates_with_channel_filter() {
         var t1 = Fixtures.template(UUID.randomUUID());
-        given(loadTemplatePort.search("Push", null, 1, 20)).willReturn(new PagedResult<>(List.of(t1), 1, 20, 1, 1));
+        given(loadTemplatePort.search("Push", "", 1, 20)).willReturn(new PagedResult<>(List.of(t1), 1, 20, 1, 1));
 
         PagedResult<TemplateInfo> result = sut.listTemplates(1, 20, "Push", null);
 
@@ -65,8 +65,8 @@ class ListTemplatesServiceTest {
     }
 
     @Test
-    void blank_filters_are_normalized_to_null() {
-        given(loadTemplatePort.search(null, null, 1, 20)).willReturn(new PagedResult<>(List.of(), 1, 20, 0, 0));
+    void blank_filters_are_normalized() {
+        given(loadTemplatePort.search(null, "", 1, 20)).willReturn(new PagedResult<>(List.of(), 1, 20, 0, 0));
 
         PagedResult<TemplateInfo> result = sut.listTemplates(1, 20, "  ", "  ");
 
