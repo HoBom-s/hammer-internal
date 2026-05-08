@@ -30,12 +30,14 @@ class QuizPersistenceAdapter implements LoadQuizPort, SaveQuizPort, DeleteQuizPo
     public PagedResult<Quiz> findAll(int page, int size) {
         Page<QuizJpaEntity> result =
                 jpaRepository.findAll(PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt")));
-        return new PagedResult<>(
-                result.getContent().stream().map(QuizMapper::toDomain).toList(),
-                page,
-                size,
-                result.getTotalElements(),
-                result.getTotalPages());
+        return toPagedResult(result, page, size);
+    }
+
+    @Override
+    public PagedResult<Quiz> findByKeyword(String keyword, int page, int size) {
+        Page<QuizJpaEntity> result = jpaRepository.findByQuestionContainingIgnoreCase(
+                keyword, PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt")));
+        return toPagedResult(result, page, size);
     }
 
     @Override
@@ -59,5 +61,14 @@ class QuizPersistenceAdapter implements LoadQuizPort, SaveQuizPort, DeleteQuizPo
     @Override
     public void deleteById(Long id) {
         jpaRepository.deleteById(id);
+    }
+
+    private PagedResult<Quiz> toPagedResult(Page<QuizJpaEntity> result, int page, int size) {
+        return new PagedResult<>(
+                result.getContent().stream().map(QuizMapper::toDomain).toList(),
+                page,
+                size,
+                result.getTotalElements(),
+                result.getTotalPages());
     }
 }

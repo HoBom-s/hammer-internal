@@ -1,5 +1,6 @@
 package com.hammer.internal.notification.adapter.out.persistence;
 
+import com.hammer.internal.common.application.PagedResult;
 import com.hammer.internal.notification.application.port.out.DeleteTemplatePort;
 import com.hammer.internal.notification.application.port.out.LoadTemplatePort;
 import com.hammer.internal.notification.application.port.out.SaveTemplatePort;
@@ -7,6 +8,8 @@ import com.hammer.internal.notification.domain.NotificationTemplate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -43,6 +46,20 @@ class NotificationTemplatePersistenceAdapter implements LoadTemplatePort, SaveTe
     @Override
     public Optional<NotificationTemplate> findByTemplateKey(String templateKey) {
         return jpaRepository.findByTemplateKey(templateKey).map(NotificationTemplateMapper::toDomain);
+    }
+
+    @Override
+    public PagedResult<NotificationTemplate> search(String channel, String keyword, int page, int size) {
+        Page<NotificationTemplateJpaEntity> result =
+                jpaRepository.search(channel, keyword, PageRequest.of(page - 1, size));
+        return new PagedResult<>(
+                result.getContent().stream()
+                        .map(NotificationTemplateMapper::toDomain)
+                        .toList(),
+                page,
+                size,
+                result.getTotalElements(),
+                result.getTotalPages());
     }
 
     @Override

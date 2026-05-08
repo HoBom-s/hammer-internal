@@ -11,9 +11,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.hammer.internal.common.application.PagedResult;
 import com.hammer.internal.common.application.port.SaveErrorLogPort;
 import com.hammer.internal.common.domain.NotFoundException;
 import com.hammer.internal.notification.application.dto.CreateTemplateCommand;
+import com.hammer.internal.notification.application.dto.PreviewTemplateResponse;
 import com.hammer.internal.notification.application.dto.TemplateInfo;
 import com.hammer.internal.notification.application.dto.UpdateTemplateCommand;
 import com.hammer.internal.notification.application.port.in.CreateTemplateUseCase;
@@ -21,6 +23,7 @@ import com.hammer.internal.notification.application.port.in.DeleteTemplateUseCas
 import com.hammer.internal.notification.application.port.in.GetTemplateByKeyUseCase;
 import com.hammer.internal.notification.application.port.in.GetTemplateUseCase;
 import com.hammer.internal.notification.application.port.in.ListTemplatesUseCase;
+import com.hammer.internal.notification.application.port.in.PreviewTemplateUseCase;
 import com.hammer.internal.notification.application.port.in.UpdateTemplateUseCase;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -60,6 +63,9 @@ class NotificationTemplateControllerTest {
     @MockitoBean
     DeleteTemplateUseCase deleteTemplateUseCase;
 
+    @MockitoBean
+    PreviewTemplateUseCase previewTemplateUseCase;
+
     private static final OffsetDateTime FIXED_TIME = OffsetDateTime.parse("2024-06-15T12:00:00+09:00");
 
     private static TemplateInfo sampleTemplateInfo(UUID id) {
@@ -80,23 +86,25 @@ class NotificationTemplateControllerTest {
     class GetAllTemplates {
 
         @Test
-        void returns_list_of_templates() throws Exception {
-            given(listTemplatesUseCase.listTemplates()).willReturn(List.of(sampleTemplateInfo(UUID.randomUUID())));
+        void returns_paged_templates() throws Exception {
+            given(listTemplatesUseCase.listTemplates(1, 20, null, null))
+                    .willReturn(new PagedResult<>(List.of(sampleTemplateInfo(UUID.randomUUID())), 1, 20, 1, 1));
 
             mockMvc.perform(get("/internal/notification-templates"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$").isArray())
-                    .andExpect(jsonPath("$[0].templateKey").value("welcome_push"))
-                    .andExpect(jsonPath("$[0].channel").value("Push"));
+                    .andExpect(jsonPath("$.items").isArray())
+                    .andExpect(jsonPath("$.items[0].templateKey").value("welcome_push"))
+                    .andExpect(jsonPath("$.items[0].channel").value("Push"));
         }
 
         @Test
-        void returns_empty_array_when_none() throws Exception {
-            given(listTemplatesUseCase.listTemplates()).willReturn(List.of());
+        void returns_empty_page_when_none() throws Exception {
+            given(listTemplatesUseCase.listTemplates(1, 20, null, null))
+                    .willReturn(new PagedResult<>(List.of(), 1, 20, 0, 0));
 
             mockMvc.perform(get("/internal/notification-templates"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$").isEmpty());
+                    .andExpect(jsonPath("$.items").isEmpty());
         }
     }
 
@@ -194,6 +202,27 @@ class NotificationTemplateControllerTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(VALID_TEMPLATE_JSON))
                     .andExpect(status().isBadRequest());
+        }
+    }
+
+    @Nested
+    class PreviewTemplate {
+
+        @Test
+        void returns_rendered_preview() throws Exception {
+            given(previewTemplateUseCase.preview(any(), any(), any()))
+                    .willReturn(new PreviewTemplateResponse("안녕 홍길동님", "홍길동님 환영"));
+
+            mockMvc.perform(
+                            post("/internal/notification-templates/preview")
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(
+                                            """
+                            {"titleTemplate":"안녕 {{name}}님","bodyTemplate":"{{name}}님 환영","variables":{"name":"홍길동"}}
+                            """))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.renderedTitle").value("안녕 홍길동님"))
+                    .andExpect(jsonPath("$.renderedBody").value("홍길동님 환영"));
         }
     }
 

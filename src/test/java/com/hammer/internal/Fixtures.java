@@ -1,5 +1,6 @@
 package com.hammer.internal;
 
+import com.hammer.internal.errorlog.domain.ErrorLog;
 import com.hammer.internal.notification.domain.Channel;
 import com.hammer.internal.notification.domain.NotificationTemplate;
 import com.hammer.internal.quiz.domain.Quiz;
@@ -41,5 +42,14 @@ public final class Fixtures {
     public static NotificationTemplate template(UUID id) {
         return new NotificationTemplate(
                 id, "welcome_push", "환영합니다", "{{name}}님 가입을 축하합니다", Channel.Push, FIXED_TIME, FIXED_TIME);
+    }
+
+    public static ErrorLog errorLog() {
+        return errorLog(1L);
+    }
+
+    public static ErrorLog errorLog(Long id) {
+        return new ErrorLog(
+                id, "GET", "/api/test", 500, "INTERNAL_ERROR", "error message", "stack trace", null, FIXED_TIME);
     }
 }

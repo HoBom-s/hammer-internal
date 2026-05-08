@@ -11,6 +11,8 @@ public interface LoadQuizPort {
 
     PagedResult<Quiz> findAll(int page, int size);
 
+    PagedResult<Quiz> findByKeyword(String keyword, int page, int size);
+
     boolean existsById(Long id);
 
     List<Quiz> findRandom(int count);

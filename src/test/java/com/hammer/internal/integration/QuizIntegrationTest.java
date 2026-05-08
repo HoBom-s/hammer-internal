@@ -60,6 +60,24 @@ class QuizIntegrationTest extends IntegrationTestBase {
 
     @Test
     @Order(3)
+    void search_quizzes_by_keyword() throws Exception {
+        mockMvc.perform(get("/internal/quizzes").param("keyword", "2+2"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items.length()").value(1))
+                .andExpect(jsonPath("$.items[0].question").value("2+2는?"));
+    }
+
+    @Test
+    @Order(4)
+    void search_quizzes_by_keyword_no_match() throws Exception {
+        mockMvc.perform(get("/internal/quizzes").param("keyword", "nonexistent"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items.length()").value(0))
+                .andExpect(jsonPath("$.totalElements").value(0));
+    }
+
+    @Test
+    @Order(5)
     void get_quiz_by_id() throws Exception {
         mockMvc.perform(get("/internal/quizzes/1"))
                 .andExpect(status().isOk())
@@ -68,7 +86,7 @@ class QuizIntegrationTest extends IntegrationTestBase {
     }
 
     @Test
-    @Order(4)
+    @Order(6)
     void update_quiz() throws Exception {
         mockMvc.perform(
                         put("/internal/quizzes/1")
@@ -91,7 +109,7 @@ class QuizIntegrationTest extends IntegrationTestBase {
     }
 
     @Test
-    @Order(5)
+    @Order(7)
     void delete_quiz() throws Exception {
         mockMvc.perform(delete("/internal/quizzes/1")).andExpect(status().isNoContent());
 
@@ -99,7 +117,7 @@ class QuizIntegrationTest extends IntegrationTestBase {
     }
 
     @Test
-    @Order(6)
+    @Order(8)
     void get_nonexistent_quiz_returns_404_with_structured_error() throws Exception {
         mockMvc.perform(get("/internal/quizzes/999"))
                 .andExpect(status().isNotFound())
@@ -108,7 +126,7 @@ class QuizIntegrationTest extends IntegrationTestBase {
     }
 
     @Test
-    @Order(7)
+    @Order(9)
     void create_quiz_with_invalid_body_returns_400() throws Exception {
         mockMvc.perform(
                         post("/internal/quizzes")

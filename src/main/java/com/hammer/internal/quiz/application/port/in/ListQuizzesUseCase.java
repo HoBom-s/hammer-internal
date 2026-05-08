@@ -5,5 +5,5 @@ import com.hammer.internal.quiz.application.dto.QuizInfo;
 
 public interface ListQuizzesUseCase {
 
-    PagedResult<QuizInfo> listQuizzes(int page, int size);
+    PagedResult<QuizInfo> listQuizzes(int page, int size, String keyword);
 }
