@@ -7,7 +7,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.hammer.internal.common.application.port.SaveErrorLogPort;
 import com.hammer.internal.dashboard.application.dto.DashboardStats;
+import com.hammer.internal.dashboard.application.dto.OverviewCounts;
 import com.hammer.internal.dashboard.application.port.in.GetDashboardStatsUseCase;
+import com.hammer.internal.dashboard.application.port.in.GetOverviewCountsUseCase;
 import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -27,6 +29,9 @@ class DashboardControllerTest {
 
     @MockitoBean
     GetDashboardStatsUseCase getDashboardStatsUseCase;
+
+    @MockitoBean
+    GetOverviewCountsUseCase getOverviewCountsUseCase;
 
     @Test
     void returns_dashboard_stats_with_default_trend_days() throws Exception {
@@ -60,5 +65,17 @@ class DashboardControllerTest {
         mockMvc.perform(get("/internal/dashboard/stats").param("trendDays", "30"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalQuizzes").value(0));
+    }
+
+    @Test
+    void returns_overview_counts() throws Exception {
+        given(getOverviewCountsUseCase.getCounts()).willReturn(new OverviewCounts(100, 50, 200, 10));
+
+        mockMvc.perform(get("/internal/dashboard/counts"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.users").value(100))
+                .andExpect(jsonPath("$.quizzes").value(50))
+                .andExpect(jsonPath("$.errorLogs").value(200))
+                .andExpect(jsonPath("$.notificationTemplates").value(10));
     }
 }

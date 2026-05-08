@@ -97,6 +97,12 @@ tasks.jacocoTestCoverageVerification {
     classDirectories.setFrom(tasks.jacocoTestReport.get().classDirectories)
 }
 
+tasks.register("verify") {
+    description = "Runs all verification: formatting, unit tests (ArchUnit), and coverage"
+    group = "verification"
+    dependsOn("spotlessCheck", "test", "jacocoTestCoverageVerification")
+}
+
 spotless {
     java {
         importOrder()

@@ -17,4 +17,8 @@ public interface LoadDashboardPort {
     List<DashboardStats.ErrorCountByCode> findTopErrorCodes(OffsetDateTime after, int limit);
 
     List<DashboardStats.DailyErrorCount> findDailyErrorCounts(OffsetDateTime after);
+
+    long countErrorLogs();
+
+    long countNotificationTemplates();
 }

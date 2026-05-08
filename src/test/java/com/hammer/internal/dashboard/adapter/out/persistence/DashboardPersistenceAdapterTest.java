@@ -148,6 +148,22 @@ class DashboardPersistenceAdapterTest {
     }
 
     @Test
+    void countErrorLogs() {
+        TypedQuery<Long> q = mockCountQuery(200L);
+        given(em.createQuery(anyString(), eq(Long.class))).willReturn(q);
+
+        assertThat(sut.countErrorLogs()).isEqualTo(200L);
+    }
+
+    @Test
+    void countNotificationTemplates() {
+        TypedQuery<Long> q = mockCountQuery(10L);
+        given(em.createQuery(anyString(), eq(Long.class))).willReturn(q);
+
+        assertThat(sut.countNotificationTemplates()).isEqualTo(10L);
+    }
+
+    @Test
     void findTopErrorCodes_empty() {
         @SuppressWarnings("unchecked")
         TypedQuery<Tuple> q = mock(TypedQuery.class);
