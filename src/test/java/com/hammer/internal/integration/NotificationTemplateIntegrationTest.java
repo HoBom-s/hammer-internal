@@ -70,15 +70,44 @@ class NotificationTemplateIntegrationTest extends IntegrationTestBase {
 
     @Test
     @Order(3)
-    void list_templates() throws Exception {
-        mockMvc.perform(get("/internal/notification-templates"))
+    void list_templates_with_pagination() throws Exception {
+        mockMvc.perform(get("/internal/notification-templates")
+                        .param("page", "1")
+                        .param("size", "10"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].templateKey").value("welcome_push"));
+                .andExpect(jsonPath("$.items").isArray())
+                .andExpect(jsonPath("$.items.length()").value(1))
+                .andExpect(jsonPath("$.items[0].templateKey").value("welcome_push"))
+                .andExpect(jsonPath("$.page").value(1))
+                .andExpect(jsonPath("$.totalElements").value(1));
     }
 
     @Test
     @Order(4)
+    void list_templates_filtered_by_channel() throws Exception {
+        mockMvc.perform(get("/internal/notification-templates").param("channel", "Push"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items.length()").value(1));
+
+        mockMvc.perform(get("/internal/notification-templates").param("channel", "InApp"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items.length()").value(0));
+    }
+
+    @Test
+    @Order(5)
+    void list_templates_filtered_by_keyword() throws Exception {
+        mockMvc.perform(get("/internal/notification-templates").param("keyword", "welcome"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items.length()").value(1));
+
+        mockMvc.perform(get("/internal/notification-templates").param("keyword", "nonexistent"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items.length()").value(0));
+    }
+
+    @Test
+    @Order(6)
     void get_template_by_id() throws Exception {
         mockMvc.perform(get("/internal/notification-templates/" + createdId))
                 .andExpect(status().isOk())
@@ -86,7 +115,26 @@ class NotificationTemplateIntegrationTest extends IntegrationTestBase {
     }
 
     @Test
-    @Order(5)
+    @Order(7)
+    void preview_template() throws Exception {
+        mockMvc.perform(
+                        post("/internal/notification-templates/preview")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(
+                                        """
+                        {
+                            "titleTemplate": "안녕하세요 {{name}}님",
+                            "bodyTemplate": "{{name}}님, {{event}} 알림입니다",
+                            "variables": {"name": "홍길동", "event": "결제"}
+                        }
+                        """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.renderedTitle").value("안녕하세요 홍길동님"))
+                .andExpect(jsonPath("$.renderedBody").value("홍길동님, 결제 알림입니다"));
+    }
+
+    @Test
+    @Order(8)
     void update_template() throws Exception {
         mockMvc.perform(
                         put("/internal/notification-templates/" + createdId)
@@ -106,7 +154,7 @@ class NotificationTemplateIntegrationTest extends IntegrationTestBase {
     }
 
     @Test
-    @Order(6)
+    @Order(9)
     void delete_template() throws Exception {
         mockMvc.perform(delete("/internal/notification-templates/" + createdId)).andExpect(status().isNoContent());
 
@@ -114,7 +162,7 @@ class NotificationTemplateIntegrationTest extends IntegrationTestBase {
     }
 
     @Test
-    @Order(7)
+    @Order(10)
     void create_with_invalid_channel_returns_400() throws Exception {
         mockMvc.perform(
                         post("/internal/notification-templates")

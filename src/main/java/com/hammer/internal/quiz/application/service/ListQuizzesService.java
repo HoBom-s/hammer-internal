@@ -19,8 +19,10 @@ class ListQuizzesService implements ListQuizzesUseCase {
     }
 
     @Override
-    public PagedResult<QuizInfo> listQuizzes(int page, int size) {
-        PagedResult<Quiz> result = loadQuizPort.findAll(page, size);
+    public PagedResult<QuizInfo> listQuizzes(int page, int size, String keyword) {
+        PagedResult<Quiz> result = (keyword != null && !keyword.isBlank())
+                ? loadQuizPort.findByKeyword(keyword.strip(), page, size)
+                : loadQuizPort.findAll(page, size);
         return new PagedResult<>(
                 result.items().stream().map(QuizInfo::from).toList(),
                 result.page(),

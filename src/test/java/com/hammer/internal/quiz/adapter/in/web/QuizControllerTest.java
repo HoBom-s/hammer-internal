@@ -84,7 +84,7 @@ class QuizControllerTest {
 
         @Test
         void returns_paged_result() throws Exception {
-            given(listQuizzesUseCase.listQuizzes(1, 20))
+            given(listQuizzesUseCase.listQuizzes(1, 20, null))
                     .willReturn(new PagedResult<>(List.of(sampleQuizInfo(1L)), 1, 20, 1, 1));
 
             mockMvc.perform(get("/internal/quizzes"))
@@ -96,7 +96,7 @@ class QuizControllerTest {
 
         @Test
         void respects_page_and_size_params() throws Exception {
-            given(listQuizzesUseCase.listQuizzes(2, 5)).willReturn(new PagedResult<>(List.of(), 2, 5, 10, 2));
+            given(listQuizzesUseCase.listQuizzes(2, 5, null)).willReturn(new PagedResult<>(List.of(), 2, 5, 10, 2));
 
             mockMvc.perform(get("/internal/quizzes").param("page", "2").param("size", "5"))
                     .andExpect(status().isOk())

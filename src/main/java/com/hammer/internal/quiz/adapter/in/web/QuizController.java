@@ -55,13 +55,14 @@ class QuizController {
         this.deleteQuizUseCase = deleteQuizUseCase;
     }
 
-    @Operation(summary = "퀴즈 목록 조회", description = "페이징을 적용하여 퀴즈 목록을 조회합니다.")
+    @Operation(summary = "퀴즈 목록 조회", description = "페이징을 적용하여 퀴즈 목록을 조회합니다. keyword로 질문 텍스트를 검색할 수 있습니다.")
     @ApiResponse(responseCode = "200", description = "조회 성공")
     @GetMapping
     public PagedResult<QuizInfo> getQuizzes(
             @Parameter(description = "페이지 번호 (1부터 시작)", example = "1") @RequestParam(defaultValue = "1") int page,
-            @Parameter(description = "페이지 크기", example = "20") @RequestParam(defaultValue = "20") int size) {
-        return listQuizzesUseCase.listQuizzes(page, size);
+            @Parameter(description = "페이지 크기", example = "20") @RequestParam(defaultValue = "20") int size,
+            @Parameter(description = "질문 텍스트 검색 키워드") @RequestParam(required = false) String keyword) {
+        return listQuizzesUseCase.listQuizzes(page, size, keyword);
     }
 
     @Operation(summary = "랜덤 퀴즈 조회", description = "지정된 개수만큼 랜덤으로 퀴즈를 조회합니다.")

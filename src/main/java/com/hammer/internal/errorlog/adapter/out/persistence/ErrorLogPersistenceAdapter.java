@@ -2,11 +2,16 @@ package com.hammer.internal.errorlog.adapter.out.persistence;
 
 import com.hammer.internal.common.application.PagedResult;
 import com.hammer.internal.common.application.port.SaveErrorLogPort;
+import com.hammer.internal.errorlog.application.dto.ErrorLogSearchCriteria;
 import com.hammer.internal.errorlog.application.port.out.LoadErrorLogPort;
 import com.hammer.internal.errorlog.domain.ErrorLog;
+import jakarta.persistence.criteria.Predicate;
+import java.util.ArrayList;
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -31,25 +36,41 @@ class ErrorLogPersistenceAdapter implements SaveErrorLogPort, LoadErrorLogPort {
     }
 
     @Override
-    public PagedResult<ErrorLog> findAll(int page, int size) {
+    public PagedResult<ErrorLog> search(ErrorLogSearchCriteria criteria, int page, int size) {
+        Specification<ErrorLogJpaEntity> spec = buildSpecification(criteria);
         Page<ErrorLogJpaEntity> result =
-                jpaRepository.findAll(PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt")));
-        return toPagedResult(result, page, size);
-    }
-
-    @Override
-    public PagedResult<ErrorLog> findByStatus(int status, int page, int size) {
-        Page<ErrorLogJpaEntity> result = jpaRepository.findByStatus(
-                status, PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt")));
-        return toPagedResult(result, page, size);
-    }
-
-    private PagedResult<ErrorLog> toPagedResult(Page<ErrorLogJpaEntity> result, int page, int size) {
+                jpaRepository.findAll(spec, PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt")));
         return new PagedResult<>(
                 result.getContent().stream().map(ErrorLogMapper::toDomain).toList(),
                 page,
                 size,
                 result.getTotalElements(),
                 result.getTotalPages());
+    }
+
+    private Specification<ErrorLogJpaEntity> buildSpecification(ErrorLogSearchCriteria criteria) {
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            if (criteria.status() != null) {
+                predicates.add(cb.equal(root.get("status"), criteria.status()));
+            }
+            if (criteria.errorCode() != null && !criteria.errorCode().isBlank()) {
+                predicates.add(
+                        cb.equal(root.get("errorCode"), criteria.errorCode().strip()));
+            }
+            if (criteria.from() != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("createdAt"), criteria.from()));
+            }
+            if (criteria.to() != null) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("createdAt"), criteria.to()));
+            }
+            if (criteria.uri() != null && !criteria.uri().isBlank()) {
+                predicates.add(cb.like(
+                        cb.lower(root.get("uri")), "%" + criteria.uri().strip().toLowerCase() + "%"));
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
     }
 }

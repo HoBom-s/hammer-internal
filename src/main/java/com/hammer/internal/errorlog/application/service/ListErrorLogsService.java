@@ -2,6 +2,7 @@ package com.hammer.internal.errorlog.application.service;
 
 import com.hammer.internal.common.application.PagedResult;
 import com.hammer.internal.errorlog.application.dto.ErrorLogInfo;
+import com.hammer.internal.errorlog.application.dto.ErrorLogSearchCriteria;
 import com.hammer.internal.errorlog.application.port.in.ListErrorLogsUseCase;
 import com.hammer.internal.errorlog.application.port.out.LoadErrorLogPort;
 import com.hammer.internal.errorlog.domain.ErrorLog;
@@ -19,11 +20,8 @@ class ListErrorLogsService implements ListErrorLogsUseCase {
     }
 
     @Override
-    public PagedResult<ErrorLogInfo> listErrorLogs(int page, int size, Integer status) {
-        PagedResult<ErrorLog> result = (status != null)
-                ? loadErrorLogPort.findByStatus(status, page, size)
-                : loadErrorLogPort.findAll(page, size);
-
+    public PagedResult<ErrorLogInfo> listErrorLogs(int page, int size, ErrorLogSearchCriteria criteria) {
+        PagedResult<ErrorLog> result = loadErrorLogPort.search(criteria, page, size);
         return new PagedResult<>(
                 result.items().stream().map(ErrorLogInfo::from).toList(),
                 result.page(),

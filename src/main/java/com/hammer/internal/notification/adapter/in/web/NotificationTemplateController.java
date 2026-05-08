@@ -1,11 +1,14 @@
 package com.hammer.internal.notification.adapter.in.web;
 
+import com.hammer.internal.common.application.PagedResult;
+import com.hammer.internal.notification.application.dto.PreviewTemplateResponse;
 import com.hammer.internal.notification.application.dto.TemplateInfo;
 import com.hammer.internal.notification.application.port.in.CreateTemplateUseCase;
 import com.hammer.internal.notification.application.port.in.DeleteTemplateUseCase;
 import com.hammer.internal.notification.application.port.in.GetTemplateByKeyUseCase;
 import com.hammer.internal.notification.application.port.in.GetTemplateUseCase;
 import com.hammer.internal.notification.application.port.in.ListTemplatesUseCase;
+import com.hammer.internal.notification.application.port.in.PreviewTemplateUseCase;
 import com.hammer.internal.notification.application.port.in.UpdateTemplateUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -14,7 +17,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.util.List;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -24,6 +26,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -38,6 +41,7 @@ class NotificationTemplateController {
     private final CreateTemplateUseCase createTemplateUseCase;
     private final UpdateTemplateUseCase updateTemplateUseCase;
     private final DeleteTemplateUseCase deleteTemplateUseCase;
+    private final PreviewTemplateUseCase previewTemplateUseCase;
 
     NotificationTemplateController(
             GetTemplateUseCase getTemplateUseCase,
@@ -45,20 +49,26 @@ class NotificationTemplateController {
             ListTemplatesUseCase listTemplatesUseCase,
             CreateTemplateUseCase createTemplateUseCase,
             UpdateTemplateUseCase updateTemplateUseCase,
-            DeleteTemplateUseCase deleteTemplateUseCase) {
+            DeleteTemplateUseCase deleteTemplateUseCase,
+            PreviewTemplateUseCase previewTemplateUseCase) {
         this.getTemplateUseCase = getTemplateUseCase;
         this.getTemplateByKeyUseCase = getTemplateByKeyUseCase;
         this.listTemplatesUseCase = listTemplatesUseCase;
         this.createTemplateUseCase = createTemplateUseCase;
         this.updateTemplateUseCase = updateTemplateUseCase;
         this.deleteTemplateUseCase = deleteTemplateUseCase;
+        this.previewTemplateUseCase = previewTemplateUseCase;
     }
 
-    @Operation(summary = "알림 템플릿 전체 조회", description = "템플릿 키 기준 오름차순으로 전체 목록을 조회합니다.")
+    @Operation(summary = "알림 템플릿 목록 조회", description = "페이징, 채널 필터, 키워드 검색을 적용하여 템플릿 목록을 조회합니다.")
     @ApiResponse(responseCode = "200", description = "조회 성공")
     @GetMapping
-    public List<TemplateInfo> getAllTemplates() {
-        return listTemplatesUseCase.listTemplates();
+    public PagedResult<TemplateInfo> getAllTemplates(
+            @Parameter(description = "페이지 번호 (1부터 시작)", example = "1") @RequestParam(defaultValue = "1") int page,
+            @Parameter(description = "페이지 크기", example = "20") @RequestParam(defaultValue = "20") int size,
+            @Parameter(description = "채널 필터 (Push, InApp, Both)") @RequestParam(required = false) String channel,
+            @Parameter(description = "템플릿 키 또는 제목 검색 키워드") @RequestParam(required = false) String keyword) {
+        return listTemplatesUseCase.listTemplates(page, size, channel, keyword);
     }
 
     @Operation(summary = "알림 템플릿 키 조회", description = "템플릿 키로 특정 알림 템플릿을 조회합니다.")
@@ -93,6 +103,16 @@ class NotificationTemplateController {
     @ResponseStatus(HttpStatus.CREATED)
     public TemplateInfo createTemplate(@Valid @RequestBody CreateNotificationTemplateRequest request) {
         return createTemplateUseCase.create(request.toCommand());
+    }
+
+    @Operation(summary = "알림 템플릿 미리보기", description = "템플릿에 변수를 치환하여 미리보기를 제공합니다.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "렌더링 성공"),
+        @ApiResponse(responseCode = "400", description = "유효성 검증 실패", content = @Content)
+    })
+    @PostMapping("/preview")
+    public PreviewTemplateResponse previewTemplate(@Valid @RequestBody PreviewTemplateRequest request) {
+        return previewTemplateUseCase.preview(request.titleTemplate(), request.bodyTemplate(), request.variables());
     }
 
     @Operation(summary = "알림 템플릿 수정", description = "기존 알림 템플릿의 내용을 수정합니다.")
