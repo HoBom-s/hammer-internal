@@ -37,6 +37,25 @@ class UserJpaEntity {
 
     protected UserJpaEntity() {}
 
+    UserJpaEntity(
+            UUID id,
+            String email,
+            String nickname,
+            short status,
+            OffsetDateTime deletedAt,
+            String agreedTermsVersion,
+            OffsetDateTime createdAt,
+            OffsetDateTime updatedAt) {
+        this.id = id;
+        this.email = email;
+        this.nickname = nickname;
+        this.status = status;
+        this.deletedAt = deletedAt;
+        this.agreedTermsVersion = agreedTermsVersion;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
+
     UUID getId() {
         return id;
     }

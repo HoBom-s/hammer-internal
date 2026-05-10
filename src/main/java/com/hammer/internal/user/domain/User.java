@@ -8,11 +8,11 @@ public class User {
     private final UUID id;
     private final Email email;
     private final Nickname nickname;
-    private final UserStatus status;
+    private UserStatus status;
     private final OffsetDateTime deletedAt;
     private final String agreedTermsVersion;
     private final OffsetDateTime createdAt;
-    private final OffsetDateTime updatedAt;
+    private OffsetDateTime updatedAt;
 
     public User(
             UUID id,
@@ -31,6 +31,28 @@ public class User {
         this.agreedTermsVersion = agreedTermsVersion;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+    }
+
+    public void suspend() {
+        if (status == UserStatus.Deleted) {
+            throw new IllegalArgumentException("Deleted user cannot be suspended.");
+        }
+        if (status == UserStatus.Suspended) {
+            return;
+        }
+        this.status = UserStatus.Suspended;
+        this.updatedAt = OffsetDateTime.now();
+    }
+
+    public void activate() {
+        if (status == UserStatus.Deleted) {
+            throw new IllegalArgumentException("Deleted user cannot be activated.");
+        }
+        if (status == UserStatus.Active) {
+            return;
+        }
+        this.status = UserStatus.Active;
+        this.updatedAt = OffsetDateTime.now();
     }
 
     public UUID getId() {

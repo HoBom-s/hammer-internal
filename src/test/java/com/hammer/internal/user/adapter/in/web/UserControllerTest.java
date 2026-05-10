@@ -2,6 +2,7 @@ package com.hammer.internal.user.adapter.in.web;
 
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -9,8 +10,10 @@ import com.hammer.internal.common.application.PagedResult;
 import com.hammer.internal.common.application.port.SaveErrorLogPort;
 import com.hammer.internal.common.domain.NotFoundException;
 import com.hammer.internal.user.application.dto.UserInfo;
+import com.hammer.internal.user.application.port.in.ActivateUserUseCase;
 import com.hammer.internal.user.application.port.in.GetUserUseCase;
 import com.hammer.internal.user.application.port.in.ListUsersUseCase;
+import com.hammer.internal.user.application.port.in.SuspendUserUseCase;
 import com.hammer.internal.user.domain.UserStatus;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -36,6 +39,12 @@ class UserControllerTest {
 
     @MockitoBean
     ListUsersUseCase listUsersUseCase;
+
+    @MockitoBean
+    SuspendUserUseCase suspendUserUseCase;
+
+    @MockitoBean
+    ActivateUserUseCase activateUserUseCase;
 
     private static final OffsetDateTime FIXED_TIME = OffsetDateTime.parse("2024-06-15T12:00:00+09:00");
 
@@ -91,6 +100,72 @@ class UserControllerTest {
             given(getUserUseCase.getUser(id)).willThrow(new NotFoundException("User", id));
 
             mockMvc.perform(get("/internal/users/{id}", id)).andExpect(status().isNotFound());
+        }
+    }
+
+    @Nested
+    class SuspendUser {
+
+        @Test
+        void returns_200_with_suspended_user() throws Exception {
+            UUID id = UUID.randomUUID();
+            var user = new UserInfo(id, "a@b.com", "nick", "Suspended", "1.0", FIXED_TIME, null);
+            given(suspendUserUseCase.suspend(id)).willReturn(user);
+
+            mockMvc.perform(post("/internal/users/{id}/suspend", id))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.id").value(id.toString()))
+                    .andExpect(jsonPath("$.status").value("Suspended"));
+        }
+
+        @Test
+        void returns_404_when_user_not_found() throws Exception {
+            UUID id = UUID.randomUUID();
+            given(suspendUserUseCase.suspend(id)).willThrow(new NotFoundException("User", id));
+
+            mockMvc.perform(post("/internal/users/{id}/suspend", id)).andExpect(status().isNotFound());
+        }
+
+        @Test
+        void returns_400_when_user_is_deleted() throws Exception {
+            UUID id = UUID.randomUUID();
+            given(suspendUserUseCase.suspend(id))
+                    .willThrow(new IllegalArgumentException("Deleted user cannot be suspended."));
+
+            mockMvc.perform(post("/internal/users/{id}/suspend", id)).andExpect(status().isBadRequest());
+        }
+    }
+
+    @Nested
+    class ActivateUser {
+
+        @Test
+        void returns_200_with_activated_user() throws Exception {
+            UUID id = UUID.randomUUID();
+            var user = new UserInfo(id, "a@b.com", "nick", "Active", "1.0", FIXED_TIME, null);
+            given(activateUserUseCase.activate(id)).willReturn(user);
+
+            mockMvc.perform(post("/internal/users/{id}/activate", id))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.id").value(id.toString()))
+                    .andExpect(jsonPath("$.status").value("Active"));
+        }
+
+        @Test
+        void returns_404_when_user_not_found() throws Exception {
+            UUID id = UUID.randomUUID();
+            given(activateUserUseCase.activate(id)).willThrow(new NotFoundException("User", id));
+
+            mockMvc.perform(post("/internal/users/{id}/activate", id)).andExpect(status().isNotFound());
+        }
+
+        @Test
+        void returns_400_when_user_is_deleted() throws Exception {
+            UUID id = UUID.randomUUID();
+            given(activateUserUseCase.activate(id))
+                    .willThrow(new IllegalArgumentException("Deleted user cannot be activated."));
+
+            mockMvc.perform(post("/internal/users/{id}/activate", id)).andExpect(status().isBadRequest());
         }
     }
 }
