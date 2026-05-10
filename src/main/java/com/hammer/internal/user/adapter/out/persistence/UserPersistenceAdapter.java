@@ -2,6 +2,7 @@ package com.hammer.internal.user.adapter.out.persistence;
 
 import com.hammer.internal.common.application.PagedResult;
 import com.hammer.internal.user.application.port.out.LoadUserPort;
+import com.hammer.internal.user.application.port.out.SaveUserPort;
 import com.hammer.internal.user.domain.User;
 import com.hammer.internal.user.domain.UserStatus;
 import java.util.Optional;
@@ -12,7 +13,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
 @Component
-class UserPersistenceAdapter implements LoadUserPort {
+class UserPersistenceAdapter implements LoadUserPort, SaveUserPort {
 
     private final UserJpaRepository jpaRepository;
 
@@ -37,6 +38,12 @@ class UserPersistenceAdapter implements LoadUserPort {
         Page<UserJpaEntity> result = jpaRepository.findByStatus(
                 status.getCode(), PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt")));
         return toPagedResult(result, page, size);
+    }
+
+    @Override
+    public User save(User user) {
+        UserJpaEntity entity = UserMapper.toJpaEntity(user);
+        return UserMapper.toDomain(jpaRepository.save(entity));
     }
 
     private PagedResult<User> toPagedResult(Page<UserJpaEntity> result, int page, int size) {

@@ -18,4 +18,16 @@ final class UserMapper {
                 entity.getCreatedAt(),
                 entity.getUpdatedAt());
     }
+
+    static UserJpaEntity toJpaEntity(User user) {
+        return new UserJpaEntity(
+                user.getId(),
+                user.getEmail().value(),
+                user.getNickname().value(),
+                user.getStatus().getCode(),
+                user.getDeletedAt(),
+                user.getAgreedTermsVersion(),
+                user.getCreatedAt(),
+                user.getUpdatedAt());
+    }
 }
